@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask & Gastro Calculator</title>
+    <style>
+        :root {
+            --red: #ffadad; --blue: #a0c4ff; --green: #caffbf;
+            --pink: #ffc6ff; --orange: #ffd6a5; --yellow: #fdffb6;
+        }
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
+        h1, h2 { color: #2c3e50; }
+        .container { max-width: 1100px; margin: auto; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+        label { font-weight: bold; display: block; margin-top: 10px; }
+        input, select { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #27ae60; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 15px; }
+        button:hover { background-color: #219150; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .color-red { background-color: var(--red); }
+        .color-blue { background-color: var(--blue); }
+        .color-green { background-color: var(--green); }
+        .color-pink { background-color: var(--pink); }
+        .color-orange { background-color: var(--orange); }
+        .color-yellow { background-color: var(--yellow); }
+        .dish-block { border: 2px solid #ddd; padding: 15px; border-radius: 6px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Production & Yield Calculator</h1>
+
+    <div class="card">
+        <h2>1. Master Recipe Settings (1 Full Bratt Pan Base)</h2>
+        <p>Set standard output quantities per 1 full Bratt Pan (300ml per flask standard):</p>
+        <div class="grid">
+            <div>
+                <h3>Main Component</h3>
+                <label>Gastros per Bratt Pan:</label>
+                <input type="number" id="master-main-gastros" value="4">
+                <label>Flasks per Bratt Pan:</label>
+                <input type="number" id="master-main-flasks" value="80">
+            </div>
+            <div>
+                <h3>Starch Component</h3>
+                <label>Gastros per Bratt Pan:</label>
+                <input type="number" id="master-starch-gastros" value="3">
+                <label>Flasks per Bratt Pan:</label>
+                <input type="number" id="master-starch-flasks" value="60">
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>2. Daily Dish Production Input (6 Dishes)</h2>
+        <div id="dishes-container"></div>
+        <button onclick="calculateProduction()">Calculate Equipment Needed</button>
+    </div>
+
+    <div class="card">
+        <h2>3. Production Summary</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Dish / Color</th>
+                    <th>Flask Target</th>
+                    <th>Main Requirements</th>
+                    <th>Starch Requirements</th>
+                </tr>
+            </thead>
+            <tbody id="results-table">
+                <tr><td colspan="4">Enter details above and click calculate.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const COLORS = ["Red", "Blue", "Green", "Pink", "Orange", "Yellow"];
+
+    // Render 6 dish entry fields dynamically
+    function initApp() {
+        const container = document.getElementById("dishes-container");
+        container.innerHTML = "";
+
+        for (let i = 1; i <= 6; i++) {
+            container.innerHTML += `
+                <div class="dish-block" id="block-${i}">
+                    <h3>Dish ${i}</h3>
+                    <div class="grid">
+                        <div>
+                            <label>Flask Color:</label>
+                            <select id="color-${i}" onchange="updateBlockColor(${i})">
+                                ${COLORS.map(c => `<option value="${c.toLowerCase()}" ${c === COLORS[i-1] ? 'selected' : ''}>${c}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label>Target Flask Count (300ml):</label>
+                            <input type="number" id="flasks-${i}" value="0" min="0">
+                        </div>
+                    </div>
+                </div>
+            `;
+            updateBlockColor(i);
+        }
+    }
+
+    function updateBlockColor(id) {
+        const select = document.getElementById(`color-${id}`);
+        const block = document.getElementById(`block-${id}`);
+        block.className = `dish-block color-${select.value}`;
+    }
+
+    function calculateProduction() {
+        // Read Master Settings
+        const mainGastrosPerPan = parseFloat(document.getElementById("master-main-gastros").value) || 1;
+        const mainFlasksPerPan = parseFloat(document.getElementById("master-main-flasks").value) || 1;
+        const starchGastrosPerPan = parseFloat(document.getElementById("master-starch-gastros").value) || 1;
+        const starchFlasksPerPan = parseFloat(document.getElementById("master-starch-flasks").value) || 1;
+
+        const resultsBody = document.getElementById("results-table");
+        resultsBody.innerHTML = "";
+
+        for (let i = 1; i <= 6; i++) {
+            const color = document.getElementById(`color-${i}`).value;
+            const targetFlasks = parseFloat(document.getElementById(`flasks-${i}`).value) || 0;
+
+            if (targetFlasks <= 0) continue;
+
+            // Calculations
+            const mainPans = (targetFlasks / mainFlasksPerPan).toFixed(2);
+            const mainGastros = (mainPans * mainGastrosPerPan).toFixed(1);
+
+            const starchPans = (targetFlasks / starchFlasksPerPan).toFixed(2);
+            const starchGastros = (starchPans * starchGastrosPerPan).toFixed(1);
+
+            resultsBody.innerHTML += `
+                <tr class="color-${color}">
+                    <td><strong>Dish ${i}</strong> (${color.toUpperCase()})</td>
+                    <td>${targetFlasks} Flasks</td>
+                    <td>
+                        <strong>${mainPans}</strong> Bratt Pans<br>
+                        <small>(${mainGastros} Gastros)</small>
+                    </td>
+                    <td>
+                        <strong>${starchPans}</strong> Bratt Pans<br>
+                        <small>(${starchGastros} Gastros)</small>
+                    </td>
+                </tr>
+            `;
+        }
+
+        if (resultsBody.innerHTML === "") {
+            resultsBody.innerHTML = `<tr><td colspan="4">Please enter at least one dish with a target flask count greater than 0.</td></tr>`;
+        }
+    }
+
+    // Initialize inputs on load
+    window.onload = initApp;
+</script>
+
+</body>
+</html>
