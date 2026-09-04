@@ -3,14 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask & Production Manager v2</title>
+    <title>Flask & Production Manager v3</title>
     <style>
+        /* Bold, Solid Color Palette for High Contrast */
         :root {
-            --red: #ffadad; --blue: #a0c4ff; --green: #caffbf;
-            --pink: #ffc6ff; --orange: #ffd6a5; --yellow: #fdffb6;
+            --red: #ff5252; 
+            --blue: #448aff; 
+            --green: #66bb6a;
+            --pink: #ff4081; 
+            --orange: #ffa726; 
+            --yellow: #ffee58;
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 20px; background-color: #f4f7f6; color: #333; }
-        .container { max-width: 1000px; margin: auto; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 20px; background-color: #f4f7f6; color: #111; }
+        .container { max-width: 1050px; margin: auto; }
         
         /* Navigation Tabs */
         .tab-bar { display: flex; border-bottom: 3px solid #27ae60; margin-bottom: 20px; }
@@ -22,32 +27,43 @@
         /* Grid & Inputs */
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
         label { font-weight: bold; display: block; margin-top: 10px; font-size: 14px; }
-        input, select { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
-        button { background-color: #27ae60; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 15px; font-weight: bold; margin-top: 15px; }
+        input, select { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; font-weight: 500; }
+        
+        /* Buttons */
+        button { background-color: #27ae60; color: white; padding: 10px 18px; border: none; border-radius: 5px; cursor: pointer; font-size: 15px; font-weight: bold; margin-top: 15px; }
         button:hover { background-color: #219150; }
         button.print-btn { background-color: #2980b9; }
         button.print-btn:hover { background-color: #1f618d; }
+        button.edit-btn { background-color: #f39c12; margin-top: 0; padding: 6px 12px; font-size: 13px; }
+        button.edit-btn:hover { background-color: #d68910; }
+        button.cancel-btn { background-color: #95a5a6; }
+        button.cancel-btn:hover { background-color: #7f8c8d; }
 
-        /* Color Themes */
-        .color-red { background-color: var(--red) !important; }
-        .color-blue { background-color: var(--blue) !important; }
-        .color-green { background-color: var(--green) !important; }
-        .color-pink { background-color: var(--pink) !important; }
-        .color-orange { background-color: var(--orange) !important; }
-        .color-yellow { background-color: var(--yellow) !important; }
+        /* Bolder Color Themes */
+        .color-red { background-color: var(--red) !important; color: #fff !important; }
+        .color-blue { background-color: var(--blue) !important; color: #fff !important; }
+        .color-green { background-color: var(--green) !important; color: #000 !important; }
+        .color-pink { background-color: var(--pink) !important; color: #fff !important; }
+        .color-orange { background-color: var(--orange) !important; color: #000 !important; }
+        .color-yellow { background-color: var(--yellow) !important; color: #000 !important; }
+
+        /* Color adjustment for inputs/labels inside dark backgrounds */
+        .color-red label, .color-blue label, .color-pink label { color: #fff; }
+        .color-green label, .color-orange label, .color-yellow label { color: #000; }
 
         .card { border: 2px solid #e0e0e0; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #f8f9fa; }
+        th { background-color: #f8f9fa; color: #333; }
 
         /* Print Layout Styles */
         @media print {
             body { background: white; padding: 0; }
             .tab-bar, button, .no-print, #recipes-panel { display: none !important; }
             .tab-panel { display: block !important; box-shadow: none; padding: 0; }
-            .card { page-break-inside: avoid; border: 1px solid #999; }
+            .card { page-break-inside: avoid; border: 2px solid #000; }
             h1 { font-size: 18px; }
+            .color-red, .color-blue, .color-green, .color-pink, .color-orange, .color-yellow { color: #000 !important; }
         }
     </style>
 </head>
@@ -64,52 +80,54 @@
         <div id="daily-dishes-list"></div>
         
         <div class="no-print">
-            <button onclick="calculateDailyTotal()">Calculate Equipment</button>
-            <button class="print-btn" onclick="window.print()">Print Order Sheet</button>
+            <button onclick="calculateDailyTotal()">Calculate Bratt Pans & Gastros</button>
+            <button class="print-btn" onclick="window.print()">Print Daily Sheet</button>
         </div>
 
-        <h2>Production Summary</h2>
+        <h2>Production Summary Output</h2>
         <table>
             <thead>
                 <tr>
                     <th>Dish / Color</th>
-                    <th>Selected Master Recipe</th>
-                    <th>Target Flasks</th>
+                    <th>Selected Recipe</th>
+                    <th>Flask Target</th>
                     <th>Main Requirements</th>
                     <th>Starch Requirements</th>
                 </tr>
             </thead>
             <tbody id="results-body">
-                <tr><td colspan="5">Select recipes, enter target quantities, and click Calculate.</td></tr>
+                <tr><td colspan="5">Enter target flasks above and click Calculate.</td></tr>
             </tbody>
         </table>
     </div>
 
     <div id="recipes-panel" class="tab-panel">
         <h1>Master Recipe Library</h1>
-        <p>Set output yields per 1 Full Bratt Pan base:</p>
+        <p>Set standard outputs produced per <strong>1 Full Bratt Pan</strong> base yield:</p>
         
-        <div class="card" style="background:#f9f9f9;">
-            <h3>Add New Recipe</h3>
+        <div class="card" style="background:#f9f9f9; color:#000;">
+            <h3 id="form-title">Add / Edit Master Recipe</h3>
+            <input type="hidden" id="edit-index" value="-1">
             <div class="grid">
                 <div>
-                    <label>Recipe Name:</label>
-                    <input type="text" id="rec-name" placeholder="e.g. Chicken Tikka & Rice">
+                    <label style="color:#000;">Recipe Name:</label>
+                    <input type="text" id="rec-name" placeholder="e.g. Chili & Couscous">
                 </div>
                 <div>
-                    <label>Main: Gastros per Bratt Pan:</label>
+                    <label style="color:#000;">Main: Gastros per Bratt Pan:</label>
                     <input type="number" id="rec-main-g" value="4">
-                    <label>Main: Flasks per Bratt Pan:</label>
+                    <label style="color:#000;">Main: Flasks per Bratt Pan:</label>
                     <input type="number" id="rec-main-f" value="80">
                 </div>
                 <div>
-                    <label>Starch: Gastros per Bratt Pan:</label>
+                    <label style="color:#000;">Starch: Gastros per Bratt Pan:</label>
                     <input type="number" id="rec-starch-g" value="3">
-                    <label>Starch: Flasks per Bratt Pan:</label>
+                    <label style="color:#000;">Starch: Flasks per Bratt Pan:</label>
                     <input type="number" id="rec-starch-f" value="60">
                 </div>
             </div>
-            <button onclick="saveNewRecipe()">Save to Master Library</button>
+            <button id="save-btn" onclick="saveRecipe()">Save Recipe</button>
+            <button id="cancel-btn" class="cancel-btn" style="display:none;" onclick="resetForm()">Cancel Edit</button>
         </div>
 
         <h3>Stored Recipes</h3>
@@ -119,6 +137,7 @@
                     <th>Recipe Name</th>
                     <th>Main Yield (Gastros / Flasks per Pan)</th>
                     <th>Starch Yield (Gastros / Flasks per Pan)</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody id="master-table-body"></tbody>
@@ -137,4 +156,152 @@
     function openTab(panelId, btnId) {
         document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.
+        document.getElementById(panelId).classList.add('active');
+        document.getElementById(btnId).classList.add('active');
+    }
+
+    function renderMasterTable() {
+        const tbody = document.getElementById("master-table-body");
+        tbody.innerHTML = masterRecipes.map((r, i) => `
+            <tr>
+                <td><strong>${r.name}</strong></td>
+                <td>${r.mainG} Gastros / ${r.mainF} Flasks</td>
+                <td>${r.starchG} Gastros / ${r.starchF} Flasks</td>
+                <td><button class="edit-btn" onclick="editRecipe(${i})">Edit Recipe</button></td>
+            </tr>
+        `).join('');
+    }
+
+    function saveRecipe() {
+        const name = document.getElementById("rec-name").value.trim();
+        const mainG = parseFloat(document.getElementById("rec-main-g").value);
+        const mainF = parseFloat(document.getElementById("rec-main-f").value);
+        const starchG = parseFloat(document.getElementById("rec-starch-g").value);
+        const starchF = parseFloat(document.getElementById("rec-starch-f").value);
+        const editIdx = parseInt(document.getElementById("edit-index").value);
+
+        if (!name) { alert("Please enter a recipe name."); return; }
+
+        if (editIdx >= 0) {
+            masterRecipes[editIdx] = { name, mainG, mainF, starchG, starchF };
+        } else {
+            masterRecipes.push({ name, mainG, mainF, starchG, starchF });
+        }
+
+        resetForm();
+        renderMasterTable();
+        buildDailyInputs();
+    }
+
+    function editRecipe(index) {
+        const r = masterRecipes[index];
+        document.getElementById("rec-name").value = r.name;
+        document.getElementById("rec-main-g").value = r.mainG;
+        document.getElementById("rec-main-f").value = r.mainF;
+        document.getElementById("rec-starch-g").value = r.starchG;
+        document.getElementById("rec-starch-f").value = r.starchF;
+        document.getElementById("edit-index").value = index;
+
+        document.getElementById("form-title").innerText = "Edit Master Recipe";
+        document.getElementById("save-btn").innerText = "Update Recipe";
+        document.getElementById("cancel-btn").style.display = "inline-block";
+    }
+
+    function resetForm() {
+        document.getElementById("rec-name").value = "";
+        document.getElementById("edit-index").value = "-1";
+        document.getElementById("form-title").innerText = "Add / Edit Master Recipe";
+        document.getElementById("save-btn").innerText = "Save Recipe";
+        document.getElementById("cancel-btn").style.display = "none";
+    }
+
+    function buildDailyInputs() {
+        const container = document.getElementById("daily-dishes-list");
+        container.innerHTML = "";
+
+        for (let i = 1; i <= 6; i++) {
+            const defaultColor = COLORS[i - 1].toLowerCase();
+            container.innerHTML += `
+                <div class="card color-${defaultColor}" id="dish-card-${i}">
+                    <div class="grid">
+                        <div>
+                            <label>Dish ${i} Flask Color Target:</label>
+                            <select id="color-select-${i}" onchange="changeCardColor(${i})">
+                                ${COLORS.map(c => `<option value="${c.toLowerCase()}" ${c.toLowerCase() === defaultColor ? 'selected' : ''}>${c}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label>Select Master Recipe:</label>
+                            <select id="recipe-select-${i}">
+                                ${masterRecipes.map((r, idx) => `<option value="${idx}">${r.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label>Required Flasks Input:</label>
+                            <input type="number" id="flask-target-${i}" value="0" min="0">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    function changeCardColor(id) {
+        const colorVal = document.getElementById(`color-select-${id}`).value;
+        const card = document.getElementById(`dish-card-${id}`);
+        card.className = `card color-${colorVal}`;
+    }
+
+    function calculateDailyTotal() {
+        const tbody = document.getElementById("results-body");
+        tbody.innerHTML = "";
+
+        let activeRows = 0;
+
+        for (let i = 1; i <= 6; i++) {
+            const color = document.getElementById(`color-select-${i}`).value;
+            const recipeIdx = document.getElementById(`recipe-select-${i}`).value;
+            const targetFlasks = parseFloat(document.getElementById(`flask-target-${i}`).value) || 0;
+
+            if (targetFlasks <= 0) continue;
+            activeRows++;
+
+            const r = masterRecipes[recipeIdx];
+
+            // Target Flasks / Flasks Per Pan = Required Bratt Pans
+            const mainPans = (targetFlasks / r.mainF).toFixed(2);
+            const mainGastros = (mainPans * r.mainG).toFixed(1);
+
+            const starchPans = (targetFlasks / r.starchF).toFixed(2);
+            const starchGastros = (starchPans * r.starchG).toFixed(1);
+
+            tbody.innerHTML += `
+                <tr class="color-${color}">
+                    <td><strong>Dish ${i}</strong> (${color.toUpperCase()})</td>
+                    <td>${r.name}</td>
+                    <td><strong>${targetFlasks}</strong> Flasks</td>
+                    <td>
+                        <strong>${mainPans}</strong> Bratt Pans<br>
+                        <small>(${mainGastros} Gastros)</small>
+                    </td>
+                    <td>
+                        <strong>${starchPans}</strong> Bratt Pans<br>
+                        <small>(${starchGastros} Gastros)</small>
+                    </td>
+                </tr>
+            `;
+        }
+
+        if (activeRows === 0) {
+            tbody.innerHTML = `<tr><td colspan="5">Please enter a flask target greater than 0 for at least one dish.</td></tr>`;
+        }
+    }
+
+    window.onload = function() {
+        renderMasterTable();
+        buildDailyInputs();
+    };
+</script>
+
+</body>
+</html>
