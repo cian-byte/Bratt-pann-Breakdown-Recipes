@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask & Production Manager v3</title>
+    <title>Production & Recipe Manager</title>
     <style>
-        /* Bold, Solid Color Palette for High Contrast */
         :root {
-            --red: #ff5252; 
-            --blue: #448aff; 
-            --green: #66bb6a;
-            --pink: #ff4081; 
-            --orange: #ffa726; 
-            --yellow: #ffee58;
+            --red: #d32f2f; 
+            --blue: #1976d2; 
+            --green: #388e3c;
+            --pink: #c2185b; 
+            --orange: #f57c00; 
+            --yellow: #fbc02d;
         }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 20px; background-color: #f4f7f6; color: #111; }
-        .container { max-width: 1050px; margin: auto; }
+        .container { max-width: 1100px; margin: auto; }
         
         /* Navigation Tabs */
         .tab-bar { display: flex; border-bottom: 3px solid #27ae60; margin-bottom: 20px; }
@@ -24,11 +23,12 @@
         .tab-panel { display: none; background: white; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
         .tab-panel.active { display: block; }
 
-        /* Grid & Inputs */
+        /* Grid & Form Elements */
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
         label { font-weight: bold; display: block; margin-top: 10px; font-size: 14px; }
-        input, select { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; font-weight: 500; }
-        
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; font-weight: 500; }
+        textarea { height: 80px; resize: vertical; }
+
         /* Buttons */
         button { background-color: #27ae60; color: white; padding: 10px 18px; border: none; border-radius: 5px; cursor: pointer; font-size: 15px; font-weight: bold; margin-top: 15px; }
         button:hover { background-color: #219150; }
@@ -37,33 +37,32 @@
         button.edit-btn { background-color: #f39c12; margin-top: 0; padding: 6px 12px; font-size: 13px; }
         button.edit-btn:hover { background-color: #d68910; }
         button.cancel-btn { background-color: #95a5a6; }
-        button.cancel-btn:hover { background-color: #7f8c8d; }
 
-        /* Bolder Color Themes */
+        /* High-Contrast Bold Colors */
         .color-red { background-color: var(--red) !important; color: #fff !important; }
         .color-blue { background-color: var(--blue) !important; color: #fff !important; }
-        .color-green { background-color: var(--green) !important; color: #000 !important; }
+        .color-green { background-color: var(--green) !important; color: #fff !important; }
         .color-pink { background-color: var(--pink) !important; color: #fff !important; }
-        .color-orange { background-color: var(--orange) !important; color: #000 !important; }
+        .color-orange { background-color: var(--orange) !important; color: #fff !important; }
         .color-yellow { background-color: var(--yellow) !important; color: #000 !important; }
 
-        /* Color adjustment for inputs/labels inside dark backgrounds */
-        .color-red label, .color-blue label, .color-pink label { color: #fff; }
-        .color-green label, .color-orange label, .color-yellow label { color: #000; }
+        .color-red label, .color-blue label, .color-green label, .color-pink label, .color-orange label { color: #fff; }
+        .color-yellow label { color: #000; }
 
         .card { border: 2px solid #e0e0e0; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; vertical-align: top; }
         th { background-color: #f8f9fa; color: #333; }
+        .ing-list { font-size: 13px; margin: 5px 0 0 0; padding-left: 18px; }
 
-        /* Print Layout Styles */
+        /* Print Formatting */
         @media print {
             body { background: white; padding: 0; }
             .tab-bar, button, .no-print, #recipes-panel { display: none !important; }
             .tab-panel { display: block !important; box-shadow: none; padding: 0; }
             .card { page-break-inside: avoid; border: 2px solid #000; }
-            h1 { font-size: 18px; }
             .color-red, .color-blue, .color-green, .color-pink, .color-orange, .color-yellow { color: #000 !important; }
+            .color-red label, .color-blue label, .color-green label, .color-pink label, .color-orange label, .color-yellow label { color: #000 !important; }
         }
     </style>
 </head>
@@ -75,35 +74,37 @@
         <button class="tab-btn" id="btn-recipes" onclick="openTab('recipes-panel', 'btn-recipes')">Master Recipe File</button>
     </div>
 
+    <!-- TAB 1: DAILY PLANNER -->
     <div id="daily-panel" class="tab-panel active">
         <h1>Daily Production Calculator</h1>
         <div id="daily-dishes-list"></div>
         
         <div class="no-print">
-            <button onclick="calculateDailyTotal()">Calculate Bratt Pans & Gastros</button>
-            <button class="print-btn" onclick="window.print()">Print Daily Sheet</button>
+            <button onclick="calculateDailyTotal()">Calculate Production & Ingredient Batching</button>
+            <button class="print-btn" onclick="window.print()">Print Order Sheet</button>
         </div>
 
-        <h2>Production Summary Output</h2>
+        <h2>Production & Ingredient Breakdown Summary</h2>
         <table>
             <thead>
                 <tr>
                     <th>Dish / Color</th>
-                    <th>Selected Recipe</th>
+                    <th>Master Recipe</th>
                     <th>Flask Target</th>
-                    <th>Main Requirements</th>
-                    <th>Starch Requirements</th>
+                    <th>Main Output & Ingredients</th>
+                    <th>Starch Output & Ingredients</th>
                 </tr>
             </thead>
             <tbody id="results-body">
-                <tr><td colspan="5">Enter target flasks above and click Calculate.</td></tr>
+                <tr><td colspan="5">Enter target flask quantities and click Calculate.</td></tr>
             </tbody>
         </table>
     </div>
 
+    <!-- TAB 2: MASTER RECIPE FILE -->
     <div id="recipes-panel" class="tab-panel">
         <h1>Master Recipe Library</h1>
-        <p>Set standard outputs produced per <strong>1 Full Bratt Pan</strong> base yield:</p>
+        <p>Define base yields and ingredients (Main per 1 Bratt Pan, Starch per 1 Gastro):</p>
         
         <div class="card" style="background:#f9f9f9; color:#000;">
             <h3 id="form-title">Add / Edit Master Recipe</h3>
@@ -111,19 +112,21 @@
             <div class="grid">
                 <div>
                     <label style="color:#000;">Recipe Name:</label>
-                    <input type="text" id="rec-name" placeholder="e.g. Chili & Couscous">
+                    <input type="text" id="rec-name" placeholder="e.g. Beef Stew & Mashed Potato">
                 </div>
                 <div>
                     <label style="color:#000;">Main: Gastros per Bratt Pan:</label>
                     <input type="number" id="rec-main-g" value="4">
                     <label style="color:#000;">Main: Flasks per Bratt Pan:</label>
                     <input type="number" id="rec-main-f" value="80">
+                    <label style="color:#000;">Main Ingredients (per 1 Bratt Pan):</label>
+                    <textarea id="rec-main-ing" placeholder="e.g. Diced Beef: 12kg, Carrots: 3kg, Gravy: 8L"></textarea>
                 </div>
                 <div>
-                    <label style="color:#000;">Starch: Gastros per Bratt Pan:</label>
-                    <input type="number" id="rec-starch-g" value="3">
-                    <label style="color:#000;">Starch: Flasks per Bratt Pan:</label>
-                    <input type="number" id="rec-starch-f" value="60">
+                    <label style="color:#000;">Starch: Flasks per Gastro:</label>
+                    <input type="number" id="rec-starch-f" value="20">
+                    <label style="color:#000;">Starch Ingredients (per 1 Gastro):</label>
+                    <textarea id="rec-starch-ing" placeholder="e.g. Potatoes: 4kg, Butter: 250g, Milk: 500ml"></textarea>
                 </div>
             </div>
             <button id="save-btn" onclick="saveRecipe()">Save Recipe</button>
@@ -135,8 +138,8 @@
             <thead>
                 <tr>
                     <th>Recipe Name</th>
-                    <th>Main Yield (Gastros / Flasks per Pan)</th>
-                    <th>Starch Yield (Gastros / Flasks per Pan)</th>
+                    <th>Main Yield & Ingredients (per Pan)</th>
+                    <th>Starch Yield & Ingredients (per Gastro)</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -149,8 +152,14 @@
     const COLORS = ["Red", "Blue", "Green", "Pink", "Orange", "Yellow"];
     
     let masterRecipes = [
-        { name: "Standard Stew & Rice", mainG: 4, mainF: 80, starchG: 3, starchF: 60 },
-        { name: "Pasta Bake & Garlic Bread", mainG: 5, mainF: 100, starchG: 2, starchF: 50 }
+        { 
+            name: "Beef Curry & Basmati Rice", 
+            mainG: 4, 
+            mainF: 80, 
+            mainIng: "Beef Chuck: 10kg\nCurry Base: 6L\nOnions: 2kg",
+            starchF: 20,
+            starchIng: "Dry Rice: 1.5kg\nWater: 3L\nSalt: 20g"
+        }
     ];
 
     function openTab(panelId, btnId) {
@@ -160,13 +169,44 @@
         document.getElementById(btnId).classList.add('active');
     }
 
+    function parseIngredients(text) {
+        if (!text.trim()) return [];
+        return text.split('\n').filter(line => line.trim() !== '').map(line => {
+            const parts = line.split(':');
+            if (parts.length === 2) {
+                const name = parts[0].trim();
+                const match = parts[1].trim().match(/^([0-9.]+)\s*([a-zA-Z]*)$/);
+                if (match) {
+                    return { name, amount: parseFloat(match[1]), unit: match[2] };
+                }
+            }
+            return { raw: line };
+        });
+    }
+
+    function renderIngredientsList(parsedArr, multiplier = 1, perPanText = "") {
+        if (parsedArr.length === 0) return "<em>No ingredients listed</em>";
+        return "<ul class='ing-list'>" + parsedArr.map(item => {
+            if (item.raw) return `<li>${item.raw}</li>`;
+            const total = (item.amount * multiplier).toFixed(2);
+            const perPan = perPanText ? ` <small>(${item.amount}${item.unit} per Bratt Pan)</small>` : '';
+            return `<li><strong>${item.name}:</strong> ${total} ${item.unit}${perPan}</li>`;
+        }).join('') + "</ul>";
+    }
+
     function renderMasterTable() {
         const tbody = document.getElementById("master-table-body");
         tbody.innerHTML = masterRecipes.map((r, i) => `
             <tr>
                 <td><strong>${r.name}</strong></td>
-                <td>${r.mainG} Gastros / ${r.mainF} Flasks</td>
-                <td>${r.starchG} Gastros / ${r.starchF} Flasks</td>
+                <td>
+                    <strong>Yield:</strong> ${r.mainG} Gastros / ${r.mainF} Flasks<br>
+                    ${renderIngredientsList(parseIngredients(r.mainIng))}
+                </td>
+                <td>
+                    <strong>Yield:</strong> ${r.starchF} Flasks per Gastro<br>
+                    ${renderIngredientsList(parseIngredients(r.starchIng))}
+                </td>
                 <td><button class="edit-btn" onclick="editRecipe(${i})">Edit Recipe</button></td>
             </tr>
         `).join('');
@@ -176,16 +216,19 @@
         const name = document.getElementById("rec-name").value.trim();
         const mainG = parseFloat(document.getElementById("rec-main-g").value);
         const mainF = parseFloat(document.getElementById("rec-main-f").value);
-        const starchG = parseFloat(document.getElementById("rec-starch-g").value);
+        const mainIng = document.getElementById("rec-main-ing").value;
         const starchF = parseFloat(document.getElementById("rec-starch-f").value);
+        const starchIng = document.getElementById("rec-starch-ing").value;
         const editIdx = parseInt(document.getElementById("edit-index").value);
 
         if (!name) { alert("Please enter a recipe name."); return; }
 
+        const recipeData = { name, mainG, mainF, mainIng, starchF, starchIng };
+
         if (editIdx >= 0) {
-            masterRecipes[editIdx] = { name, mainG, mainF, starchG, starchF };
+            masterRecipes[editIdx] = recipeData;
         } else {
-            masterRecipes.push({ name, mainG, mainF, starchG, starchF });
+            masterRecipes.push(recipeData);
         }
 
         resetForm();
@@ -198,8 +241,9 @@
         document.getElementById("rec-name").value = r.name;
         document.getElementById("rec-main-g").value = r.mainG;
         document.getElementById("rec-main-f").value = r.mainF;
-        document.getElementById("rec-starch-g").value = r.starchG;
+        document.getElementById("rec-main-ing").value = r.mainIng;
         document.getElementById("rec-starch-f").value = r.starchF;
+        document.getElementById("rec-starch-ing").value = r.starchIng;
         document.getElementById("edit-index").value = index;
 
         document.getElementById("form-title").innerText = "Edit Master Recipe";
@@ -225,19 +269,19 @@
                 <div class="card color-${defaultColor}" id="dish-card-${i}">
                     <div class="grid">
                         <div>
-                            <label>Dish ${i} Flask Color Target:</label>
+                            <label>Dish ${i} Color Dropdown:</label>
                             <select id="color-select-${i}" onchange="changeCardColor(${i})">
                                 ${COLORS.map(c => `<option value="${c.toLowerCase()}" ${c.toLowerCase() === defaultColor ? 'selected' : ''}>${c}</option>`).join('')}
                             </select>
                         </div>
                         <div>
-                            <label>Select Master Recipe:</label>
+                            <label>Master Recipe Selection:</label>
                             <select id="recipe-select-${i}">
                                 ${masterRecipes.map((r, idx) => `<option value="${idx}">${r.name}</option>`).join('')}
                             </select>
                         </div>
                         <div>
-                            <label>Required Flasks Input:</label>
+                            <label>Flask Target Input:</label>
                             <input type="number" id="flask-target-${i}" value="0" min="0">
                         </div>
                     </div>
@@ -268,25 +312,30 @@
 
             const r = masterRecipes[recipeIdx];
 
-            // Target Flasks / Flasks Per Pan = Required Bratt Pans
+            // MAIN: Bratt Pans = Target Flasks / Main Flasks Per Pan
             const mainPans = (targetFlasks / r.mainF).toFixed(2);
             const mainGastros = (mainPans * r.mainG).toFixed(1);
+            const mainIngParsed = parseIngredients(r.mainIng);
 
-            const starchPans = (targetFlasks / r.starchF).toFixed(2);
-            const starchGastros = (starchPans * r.starchG).toFixed(1);
+            // STARCH: Gastros = Target Flasks / Starch Flasks Per Gastro
+            const starchGastros = (targetFlasks / r.starchF).toFixed(1);
+            const starchIngParsed = parseIngredients(r.starchIng);
 
             tbody.innerHTML += `
                 <tr class="color-${color}">
-                    <td><strong>Dish ${i}</strong> (${color.toUpperCase()})</td>
-                    <td>${r.name}</td>
+                    <td><strong>Dish ${i}</strong><br>(${color.toUpperCase()})</td>
+                    <td><strong>${r.name}</strong></td>
                     <td><strong>${targetFlasks}</strong> Flasks</td>
                     <td>
                         <strong>${mainPans}</strong> Bratt Pans<br>
-                        <small>(${mainGastros} Gastros)</small>
+                        <small>(${mainGastros} Gastros)</small><br><br>
+                        <strong>Main Total Ingredients:</strong>
+                        ${renderIngredientsList(mainIngParsed, mainPans, true)}
                     </td>
                     <td>
-                        <strong>${starchPans}</strong> Bratt Pans<br>
-                        <small>(${starchGastros} Gastros)</small>
+                        <strong>${starchGastros}</strong> Gastros Needed<br><br>
+                        <strong>Starch Total Ingredients:</strong>
+                        ${renderIngredientsList(starchIngParsed, starchGastros, false)}
                     </td>
                 </tr>
             `;
